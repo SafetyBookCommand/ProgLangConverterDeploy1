@@ -25,7 +25,6 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
     while_started = False
     procedure_opened = False
 
-    # processing 2-dim array
     for line_idx, row in enumerate(tokens_list):
         for col_idx, token in enumerate(row):
             if isinstance(token, VarToken):
@@ -34,28 +33,22 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
                     if ':' in var_val:
                         var_val = var_val.split(':')[0]
                     CODE_TO_EXECUTE += f"{var_val} "
-                    # print(var_val)
 
             elif isinstance(token, Token):
                 tt = token.type_
                 t_val = token.value
-                # print(f"{tt} || {t_val=}")
 
                 python_el = ''
                 meaning = ''
 
                 if tt in EXIST_IN_PYTHON:
-                    # print(f"{EXIST_IN_PYTHON.get(tt)=}")
                     python_el = EXIST_IN_PYTHON.get(tt)[0]
                     meaning = EXIST_IN_PYTHON.get(tt)[1]
 
                 elif tt in DONT_EXIST_IN_PYTHON:
-                    # print(f"type: {token.type_} || in dict (don't): {DONT_EXIST_IN_PYTHON.get(tt)}")
                     python_el = DONT_EXIST_IN_PYTHON.get(tt)[0]
                     meaning = DONT_EXIST_IN_PYTHON.get(tt)[1]
-                else:
-                    # print(token)
-                    ...
+                
                 match meaning:
                     case "funct":
                         typed_val = f"{python_el}(\"{t_val}\") " if python_el == "str" else f"{python_el}({t_val}) "
@@ -69,9 +62,7 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
                     case "RPAR":
                         CODE_TO_EXECUTE = add_sign_to_end(CODE_TO_EXECUTE, ") ")
                     case "IF":
-                        # print(f"if {row[col_idx - 1]=} || {col_idx} || {times_to_tab}")
                         if str(row[col_idx - 1]) == "END":
-                            # print(f"{times_to_tab=}")
                             times_to_tab -= 1
                             end_if_count += 1
                         else:
@@ -84,7 +75,6 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
                             return CompilerIfBlockError(f"Token: {token}", line_idx + 1, None, None,
                                                         filename)
                         CODE_TO_EXECUTE = f"{CODE_TO_EXECUTE[:-1]}{python_el} "
-                        # times_to_tab += 1
                     case "ELSE":
                         else_blocks += 1
                         if else_blocks > if_blocks_tabs:
@@ -96,7 +86,6 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
                         while_started = True
                         loop_count += 1
                     case "LOOP":
-                        # print(f"loop {row[col_idx - 1]=} || {col_idx}")
                         if str(row[col_idx - 1]) == "END":
                             times_to_tab -= 1
                             loop_count += 1
@@ -106,7 +95,7 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
                         for_var = str(row[1]).split('-')[1].split(':')[0]
                         lb = str(row[3]).split(':')[1]
                         rb = str(row[5]).split(':')[1]
-                        CODE_TO_EXECUTE += f"for {for_var} in range({lb}, {rb} + 1): \n{'\t'*times_to_tab}"
+                        CODE_TO_EXECUTE += "for " + for_var + " in range(" + lb + ", " + {rb} + " + 1): \n" + "\t" * times_to_tab
                         loop_count += 1
                         break
                     case "THEN":
@@ -121,11 +110,8 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
                         else:
                             CODE_TO_EXECUTE += f" {comment}"
                     case "PROCEDURE":
-                        # print(str(row[col_idx - 1]))
-                        # print(row)
                         if str(row[col_idx - 1]) == "END":
                             times_to_tab -= 1
-                            # print(f"{times_to_tab=}")
                             end_procedure_count += 1
                         else:
                             procedure_opened = True
@@ -154,7 +140,7 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
                     CODE_TO_EXECUTE = add_sign_to_end(CODE_TO_EXECUTE, ':')
                     procedure_opened = False
 
-                CODE_TO_EXECUTE += f"\n{'\t'*times_to_tab}"
+                CODE_TO_EXECUTE += "\n" + "\t" * times_to_tab
 
     # print("\n\nCODE:\n")
     if if_block_count != end_if_count:
