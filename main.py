@@ -55,12 +55,12 @@ def main(page: ft.Page):
         prog_bars.clear()
         files.current.controls.clear()
         if e.files is not None:
-            if os.listdir("uploads"): 
-                for file in os.listdir("uploads"):
-                    file_path_uploads = os.path.join("uploads", file)
-                    print(file_path_uploads)
-                    if os.path.isfile(file_path_uploads):
-                        os.remove(file_path_uploads)
+            # if os.listdir("uploads"): 
+            #     for file in os.listdir("uploads"):
+            #         file_path_uploads = os.path.join("uploads", file)
+            #         print(file_path_uploads)
+            #         if os.path.isfile(file_path_uploads):
+            #             os.remove(file_path_uploads)
             for f in e.files:
                 prog = ft.ProgressRing(value=0, bgcolor="#eeeeee", width=20, height=20)
                 prog_bars[f.name] = prog
