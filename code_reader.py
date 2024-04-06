@@ -16,18 +16,21 @@ def read_run(filename: str, txt: str | None = None, direct_from_files: bool = Fa
     if direct_from_files and filepath is not None:
         with open(filepath) as f:
             txt = f.read() + "\n"
+    else:
+        txt += "\n"
 
     if txt:
         compiler = core.Compiler(txt, None, filepath) if direct_from_files else core.Compiler(txt, filename)
         output_parts["filename"] = compiler.filename
         res, err = compiler.run()
-
-        string_io = io.StringIO()
-        sys.stdout = string_io
-
+        print(err)
         if err:
-            print(err)
+            # print(err)
+            output_parts["error"] = str(err)
+            # output_parts["error"] = string_io.getvalue()
         else:
+            string_io = io.StringIO()
+            sys.stdout = string_io
             python_code = translator.to_python(res, compiler.filename)
             output_parts["python_code"] = python_code
             print()
@@ -40,11 +43,7 @@ def read_run(filename: str, txt: str | None = None, direct_from_files: bool = Fa
             else:
                 output_parts["output"] = output
 
-        sys.stdout = sys.__stdout__
+            sys.stdout = sys.__stdout__
         return output_parts
     else:
         return
-
-
-if __name__ == "__main__":
-    pprint(read_run("/Users/cryptogazer/Desktop/IAs/ProgLangConverterDeploy1/CompilerFunctionality/test_prog2.txt"))
