@@ -1,18 +1,25 @@
-from presets import *
-from openai_algorithm import get_completion_elements, LANGUAGES
-
 import flet as ft
+
 import os
+from typing import Dict
+from time import sleep
+
+from templates import *
+from code_reader import read_run
 
 FROM_LANGUAGE_NAME = ""
 TO_LANGUAGE_NAME = ""
-WARNINGS_COUNTER = 0
 DO_INCREMENT = True
+
+filepath = ''
+filename = ''
+uf = []
+
 
 def main(page: ft.Page):
     global FROM_LANGUAGE_NAME
     global TO_LANGUAGE_NAME
-    global WARNINGS_COUNTER
+    global filename
 
     page.scroll = ft.ScrollMode.ALWAYS
     page.fonts = {
@@ -23,51 +30,10 @@ def main(page: ft.Page):
 
     intro_large_text = ft.Text(
         value="Hello, dear User!\n"
-              "Welcome to programming languages converter",
-        style=ft.TextThemeStyle.DISPLAY_MEDIUM,
+              "Welcome to Pseudocode to Python Converter!",
+        theme_style=ft.TextThemeStyle.DISPLAY_SMALL,
         weight=ft.FontWeight.W_300,
         text_align=ft.TextAlign.CENTER
-    )
-    intro_large_cursive_text = ft.Text(
-        value="(and vice versa)",
-        size=24,
-        weight=ft.FontWeight.W_100,
-        italic=True
-    )
-
-    # from_language_choose = ft.Text(
-    #     value=f"from {FROM_LANGUAGE_NAME}",
-    #     italic=True,
-    # )
-    #
-    # to_language_choose = ft.Text(
-    #     value=f"to {TO_LANGUAGE_NAME}",
-    #     italic=True,
-    # )
-
-    def from_lang_choose(e):
-        global FROM_LANGUAGE_NAME
-        print(f"Dropdown: {from_language_choose.value}")
-        FROM_LANGUAGE_NAME = from_language_choose.value
-        code_field.label = f"your {FROM_LANGUAGE_NAME} code here"
-        page.update()
-
-    def to_lang_choose(e):
-        global TO_LANGUAGE_NAME
-        print(f"Dropdown: {to_language_choose.value}")
-        TO_LANGUAGE_NAME = to_language_choose.value
-        page.update()
-
-    from_language_choose = ft.Dropdown(
-        options=[ft.dropdown.Option(lang) for lang in LANGUAGES],
-        label="FROM",
-        on_change=from_lang_choose
-    )
-
-    to_language_choose = ft.Dropdown(
-        options=[ft.dropdown.Option(lang) for lang in LANGUAGES],
-        label="TO",
-        on_change=to_lang_choose
     )
 
     code_field = ft.TextField(
@@ -77,112 +43,95 @@ def main(page: ft.Page):
         multiline=True,
     )
 
-    translated_code = ft.Text(
-        value='',
-        size=19,
-        text_align=ft.TextAlign.START,
-        selectable=True
-    )
+    translated_code = TextForCode(19)
+    code_result = TextForCode(22)
 
-    def toggle_icon_button(e):
-        global FROM_LANGUAGE_NAME
-        global TO_LANGUAGE_NAME
+    prog_bars: Dict[str, ft.ProgressRing] = {}
+    files = ft.Ref[ft.Column]()
+    upload_button = ft.Ref[ft.ElevatedButton]()
 
-        temp = to_language_choose.value
-        to_language_choose.value = from_language_choose.value
-        from_language_choose.value = temp
-
-        FROM_LANGUAGE_NAME = from_language_choose.value
-        TO_LANGUAGE_NAME = to_language_choose.value
-        if not FROM_LANGUAGE_NAME:
-            code_field.label = "your code here"
-        else:
-            code_field.label = f"your {FROM_LANGUAGE_NAME} code here"
+    def file_picker_result(e: ft.FilePickerResultEvent):
+        upload_button.current.disabled = True if e.files is None else False
+        prog_bars.clear()
+        files.current.controls.clear()
+        if e.files is not None:
+            if os.listdir("uploads"): 
+                for file in os.listdir("uploads"):
+                    file_path_uploads = os.path.join("uploads", file)
+                    print(file_path_uploads)
+                    if os.path.isfile(file_path_uploads):
+                        os.remove(file_path_uploads)
+            for f in e.files:
+                prog = ft.ProgressRing(value=0, bgcolor="#eeeeee", width=20, height=20)
+                prog_bars[f.name] = prog
+                files.current.controls.append(ft.Row([prog, ft.Text(f.name)]))
         page.update()
 
-    def remove_warning_msgs(*msgs):
-        global WARNINGS_COUNTER
-        WARNINGS_COUNTER = 0
-        for msg in msgs:
-            if msg in warnings_list:
-                warnings_list.remove(msg)
+    def on_upload_progress(e: ft.FilePickerUploadEvent):
+        prog_bars[e.file_name].value = e.progress
+        prog_bars[e.file_name].update()
+
+    file_picker = ft.FilePicker(on_result=file_picker_result, on_upload=on_upload_progress)
+
+    def upload_files(e):
+        global filename
+        global uf
+
+        if file_picker.result is not None and file_picker.result.files is not None:
+            warnings_message.value = ''
+            for f in file_picker.result.files:
+                uf.append(
+                    ft.FilePickerUploadFile(
+                        f.name,
+                        upload_url=page.get_upload_url(f.name, 600),
+                    )
+                )
+                filename = f.name
+            file_picker.upload(uf)
+
+            sleep(0.5)
+            with open(f"uploads/{filename}") as f:
+                code_field.value = f.read()
+            page.update()
+
+    page.overlay.append(file_picker)
+
+    select_button = ft.ElevatedButton(
+            text="Select File",
+            icon=ft.icons.FOLDER_OPEN,
+            on_click=lambda _: file_picker.pick_files(allow_multiple=False),
+        )
+
+    files_col = ft.Column(ref=files)
+
+    loader_button = ft.ElevatedButton(
+            text="Upload",
+            ref=upload_button,
+            icon=ft.icons.UPLOAD,
+            on_click=upload_files,
+            disabled=True,
+        )
 
     def translate_code_command(e):
-        global FROM_LANGUAGE_NAME
-        global TO_LANGUAGE_NAME
-        global WARNINGS_COUNTER
-        global DO_INCREMENT
+        global filename
+        global uf
 
-        print(TO_LANGUAGE_NAME, FROM_LANGUAGE_NAME)
-        print(to_language_choose.value, from_language_choose.value)
+        if not code_field.value:
+            warnings_message.value = ("Your code field is empty! "
+                                      "Maybe you have forgotten to upload "
+                                      "your file?")
 
-        empty_code_field_response_msg.disabled = True
-        empty_code_field_response_msg.visible = False
-        unclear_code_response_msg.disabled = True
-        unclear_code_response_msg.visible = False
-
-        if to_language_choose.value == from_language_choose.value or (not to_language_choose.value) or (
-                not from_language_choose.value):
-            if (not to_language_choose.value) or (not from_language_choose.value):
-                no_lang_msg.disabled = False
-                no_lang_msg.visible = True
-                if no_lang_msg not in warnings_list:
-                    warnings_list.append(no_lang_msg)
-            else:
-                same_lang_msg.disabled = False
-                same_lang_msg.visible = True
-                no_lang_msg.disabled = True
-                no_lang_msg.visible = False
-                if same_lang_msg not in warnings_list:
-                    warnings_list.append(same_lang_msg)
-
-            print(DO_INCREMENT, warnings_list)
-            if DO_INCREMENT:
-                DO_INCREMENT = False
-                WARNINGS_COUNTER += 1
-                warnings_text.value = f"\nWarnings: {WARNINGS_COUNTER}\n"
         else:
-            same_lang_msg.disabled = True
-            same_lang_msg.visible = False
-            no_lang_msg.disabled = True
-            no_lang_msg.visible = False
+            warnings_message.value = ''
+            pseudocode = code_field.value
+            print("Pseudo:\n")
+            print(pseudocode)
+            output_dict = read_run(filename, pseudocode)
+            print(output_dict)
 
-            DO_INCREMENT = True
-            if WARNINGS_COUNTER > 0:
-                remove_warning_msgs(same_lang_msg, no_lang_msg, empty_code_field_response_msg, unclear_code_response_msg)
-                warnings_text.value = f"\nWarnings: {WARNINGS_COUNTER}\n"
-            if WARNINGS_COUNTER == 0:
-                response = get_completion_elements(code_field.value, FROM_LANGUAGE_NAME, TO_LANGUAGE_NAME)
-                print(f"Initial response: {response}")
-
-                if isinstance(response, dict):
-                    if response.get(1):
-                        empty_code_field_response_msg.disabled = False
-                        empty_code_field_response_msg.visible = True
-                        empty_code_field_response_msg.value = response.get(1)
-                        warnings_list.append(empty_code_field_response_msg)
-
-                        WARNINGS_COUNTER += 1
-                        warnings_text.value = f"\nWarnings: {WARNINGS_COUNTER}\n"
-                    elif response.get(2):
-                        unclear_code_response_msg.disabled = False
-                        unclear_code_response_msg.visible = True
-                        unclear_code_response_msg.value = response.get(2)
-                        warnings_list.append(unclear_code_response_msg)
-
-                        WARNINGS_COUNTER += 1
-                        warnings_text.value = f"\nWarnings: {WARNINGS_COUNTER}\n"
-
-                    print(warnings_list)
-                elif isinstance(response, str):
-                    translated_code.value = response
-                else:
-                    print(f"{code_field.value=}")
-                    print(FROM_LANGUAGE_NAME, TO_LANGUAGE_NAME)
-                    print(f"{response=}\n")
-                    response_text: str = response[0]
-                    translated_code.value = response_text[response_text.index("\n"):]
-
+            translated_code.value = output_dict["python_code"]
+            code_result.value = output_dict["output"]
+            warnings_message.value = output_dict["error"]
         page.update()
 
     def clear_code_field_command(e):
@@ -190,7 +139,7 @@ def main(page: ft.Page):
         page.update()
 
     translate_code_button = ft.TextButton(
-        f"Translate to {TO_LANGUAGE_NAME}",
+        text="Translate to Python",
         on_click=translate_code_command,
         icon=ft.icons.TRANSLATE
     )
@@ -201,46 +150,26 @@ def main(page: ft.Page):
         icon=ft.icons.DELETE
     )
 
-    # show ChatGPT annotations (button)
-
-    language_switch_icon = ft.IconButton(
-        icon=ft.icons.COMPARE_ARROWS,
-        on_click=toggle_icon_button,
-        icon_color="blue400",
-        icon_size=80
-    )
-
-    warnings_text = ft.Text(
-        value=f"\nWarnings: {WARNINGS_COUNTER}\n",
-        style=ft.TextThemeStyle.DISPLAY_SMALL,
-        size=25,
-        text_align=ft.TextAlign.CENTER,
-        italic=True
-    )
-
-    same_lang_msg = WarningMsg(("Both languages are same!\n"
-                                "Please, change one of them,\n"
-                                "in order to conduct translation properly!\n"))
-
-    no_lang_msg = WarningMsg(("Some of the languages are absent!\n"
-                              "Please, fill all the gaps!\n"))
-
-    empty_code_field_response_msg = WarningMsg("")
-
-    unclear_code_response_msg = WarningMsg("")
-
-    warnings_list = []
+    filename_text = RightColumnLabels(f"\nFile: {filename}\n")
+    warnings_text = RightColumnLabels("Warnings")
+    warnings_message = WarningMessage('')
 
     main_stack = ft.ListView(
         [
             ft.Row(
                 [
                     ft.Text(
-                        value="In the gap below you can insert your initial code and then click on the switcher on the "
-                              "right hand side in order to choose the conversion mode. This program checks firstly, "
-                              "whether your code fits the requirements either Java or pseudo-code, "
-                              "informs about the possible language recognition errors and then conducts the "
-                              "conversion\n",
+                        value="In the gap below you can insert your initial code and then click on the button on the "
+                              "right hand side in order to translate the pseudocode. This program checks firstly, "
+                              "whether your code fits the requirements of IB-styled Pseudocode, "
+                              "informs about the possible language errors. If there are no errors, it conducts the "
+                              "conversion!\n\nSimple Rules:\n"
+                              "\t1. Use rules of IB-Styled Pseudocode. Exceptions:\n"
+                              "\t\t  1.1. \"Equals\" - \"==\"\n"
+                              "\t\t  1.2. Special Chars: \\n, \\t can be typed only with double-slash: \\\\n, \\\\t\n"
+                              "\t\t  1.3. You cannot write arguments of one function on multiple lines\n"
+                              "\t\t  1.4. There are not available IB-Styled Pseudocode Data Structures\n"
+                              "\t2. You can provide Pseudocode to the website by downloading your txt file or copying your code",
                         size=22,
                         text_align=ft.TextAlign.JUSTIFY,
                         expand=True
@@ -253,11 +182,31 @@ def main(page: ft.Page):
                     ft.Column(
                         [
                             code_field,
-                            ft.Text(
-                                value="Translated code:",
-                                size=22
-                            ),
-                            translated_code
+                            ft.Row(
+                                [
+                                    ft.Column(
+                                        [
+                                            ft.Text(
+                                                value="Translated code:",
+                                                size=22
+                                            ),
+                                            translated_code
+                                        ],
+                                        width=450
+                                    ),
+                                    ft.Column(
+                                        [
+                                            ft.Text(
+                                                value="Result:",
+                                                size=22
+                                            ),
+                                            code_result
+                                        ],
+                                        width=150,
+                                        alignment=ft.MainAxisAlignment.END
+                                    )
+                                ],
+                            )
                         ],
                         spacing=30
                     ),
@@ -265,28 +214,18 @@ def main(page: ft.Page):
                         [
                             ft.Column(
                                 [
-                                    from_language_choose
-                                ],
-                                width=300,
-                            ),
-                            ft.Row(
-                                [
-                                    language_switch_icon
-                                ]
-                            ),
-                            ft.Row(
-                                [
-                                    to_language_choose
-                                ],
-                                width=200
-                            ),
-                            ft.Column(
-                                [
                                     translate_code_button,
                                     clear_code_field_button,
+                                    select_button,
+                                    files_col,
+                                    loader_button,
+                                    filename_text,
                                     warnings_text,
                                     ft.Column(
-                                        warnings_list
+                                        [
+                                            warnings_message
+                                        ],
+                                        width=200
                                     )
                                 ]
                             )
@@ -306,11 +245,11 @@ def main(page: ft.Page):
 
     page.add(
         intro_large_text,
-        intro_large_cursive_text,
         main_stack
     )
 
 ft.app(target=main,
        view=None,
        port=int(os.getenv("PORT", 8502)),
-      assets_dir="assets")
+       assets_dir="assets",
+       upload_dir="uploads")
