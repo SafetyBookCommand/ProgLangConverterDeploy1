@@ -152,6 +152,7 @@ def main(page: ft.Page):
 
     def clear_code_field_command(e):
         code_field.value = ''
+        warnings_message.value = ''
         page.update()
 
     translate_code_button = ft.TextButton(
