@@ -169,7 +169,7 @@ def main(page: ft.Page):
                               "\t\t  1.2. Special Chars: \\n, \\t can be typed only with double-slash: \\\\n, \\\\t\n"
                               "\t\t  1.3. You cannot write arguments of one function on multiple lines\n"
                               "\t\t  1.4. There are not available IB-Styled Pseudocode Data Structures\n"
-                              "\t2. You can provide Pseudocode to the website by downloading your txt file or copying your code",
+                              "\t2. You can provide Pseudocode to the website by downloading your txt file or copying your code\n\n",
                         size=22,
                         text_align=ft.TextAlign.JUSTIFY,
                         expand=True
