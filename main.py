@@ -156,6 +156,8 @@ def main(page: ft.Page):
         code_field.value = ''
         warnings_message.value = ''
         filename_text.value = "\nFile:\n"
+        translated_code.value = ''
+        code_result.value = ''
         page.update()
 
     translate_code_button = ft.TextButton(
