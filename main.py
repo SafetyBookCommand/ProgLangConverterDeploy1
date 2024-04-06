@@ -64,12 +64,12 @@ def main(page: ft.Page):
         prog_bars.clear()
         files.current.controls.clear()
         if e.files is not None:
-            if os.path.isdir("/app/uploads") and os.listdir("/app/uploads"):  
-                for file in os.listdir("/app/uploads"):
-                    file_path_uploads = os.path.join("uploads", file)
-                    print(file_path_uploads)
-                    if os.path.isfile(file_path_uploads):
-                        os.remove(file_path_uploads)
+            # if os.path.isdir("/app/uploads") and os.listdir("/app/uploads"):  
+            #     for file in os.listdir("/app/uploads"):
+            #         file_path_uploads = os.path.join("uploads", file)
+            #         print(file_path_uploads)
+            #         if os.path.isfile(file_path_uploads):
+            #             os.remove(file_path_uploads)
             for f in e.files:
                 prog = ft.ProgressRing(value=0, bgcolor="#eeeeee", width=20, height=20)
                 prog_bars[f.name] = prog
@@ -87,6 +87,10 @@ def main(page: ft.Page):
         global uf
 
         if file_picker.result is not None and file_picker.result.files is not None:
+            try:
+                os.mkdir("/app/uploads")
+            except FileExistsError:
+                print("exists")
             warnings_message.value = ''
             for f in file_picker.result.files:
                 uf.append(
