@@ -1,0 +1,9 @@
+// it's a comment
+
+A = (1 + 2) * 10
+output A
+
+loop while A > 0
+    output A
+    A = A - 2
+end loop
