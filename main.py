@@ -97,6 +97,8 @@ def main(page: ft.Page):
                 )
                 filename = f.name
             file_picker.upload(uf)
+            
+            print(f'ABSPATH: {os.path.abspath("uploads")}')
 
             sleep(0.5)
             with open(f"uploads/{filename}") as f:
