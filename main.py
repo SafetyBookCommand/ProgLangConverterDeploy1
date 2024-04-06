@@ -100,7 +100,7 @@ def main(page: ft.Page):
             
             print(f'ABSPATH: {os.path.abspath("uploads")}')
 
-            sleep(0.5)
+            sleep(3)
             with open(f"/app/uploads/{filename}") as f:
                 code_field.value = f.read()
             page.update()
