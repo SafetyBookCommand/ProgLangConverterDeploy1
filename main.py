@@ -99,6 +99,7 @@ def main(page: ft.Page):
             file_picker.upload(uf)
             
             print(f'ABSPATH: {os.path.abspath("uploads")}')
+            print(os.listdir(os.path.abspath("uploads")))
 
             sleep(3)
             with open(f"/app/uploads/{filename}") as f:
