@@ -64,12 +64,12 @@ def main(page: ft.Page):
         prog_bars.clear()
         files.current.controls.clear()
         if e.files is not None:
-            # if os.path.isdir("/app/uploads") and os.listdir("/app/uploads"):  
-            #     for file in os.listdir("/app/uploads"):
-            #         file_path_uploads = os.path.join("uploads", file)
-            #         print(file_path_uploads)
-            #         if os.path.isfile(file_path_uploads):
-            #             os.remove(file_path_uploads)
+            if os.path.isdir("/app/uploads") and os.listdir("/app/uploads"):  
+                for file in os.listdir("/app/uploads"):
+                    file_path_uploads = os.path.join("uploads", file)
+                    print(file_path_uploads)
+                    if os.path.isfile(file_path_uploads):
+                        os.remove(file_path_uploads)
             for f in e.files:
                 prog = ft.ProgressRing(value=0, bgcolor="#eeeeee", width=20, height=20)
                 prog_bars[f.name] = prog
@@ -153,11 +153,26 @@ def main(page: ft.Page):
         page.update()
 
     def clear_code_field_command(e):
+        global uf
         code_field.value = ''
         warnings_message.value = ''
         filename_text.value = "\nFile:\n"
         translated_code.value = ''
         code_result.value = ''
+
+        translated_code.value = ''
+        code_result.value = ''
+        uf = []
+
+        if os.path.isdir("/app/uploads") and os.listdir("/app/uploads"):  
+                for file in os.listdir("/app/uploads"):
+                    file_path_uploads = os.path.join("uploads", file)
+                    print(file_path_uploads)
+                    if os.path.isfile(file_path_uploads):
+                        os.remove(file_path_uploads)
+        
+        files.current.controls.clear()
+        
         page.update()
 
     translate_code_button = ft.TextButton(
