@@ -64,8 +64,8 @@ def main(page: ft.Page):
         prog_bars.clear()
         files.current.controls.clear()
         if e.files is not None:
-            if os.path.isdir("uploads") and os.listdir("uploads"):  
-                for file in os.listdir("uploads"):
+            if os.path.isdir("/app/uploads") and os.listdir("/app/uploads"):  
+                for file in os.listdir("/app/uploads"):
                     file_path_uploads = os.path.join("uploads", file)
                     print(file_path_uploads)
                     if os.path.isfile(file_path_uploads):
@@ -101,7 +101,7 @@ def main(page: ft.Page):
             print(f'ABSPATH: {os.path.abspath("uploads")}')
 
             sleep(0.5)
-            with open(f"uploads/{filename}") as f:
+            with open(f"/app/uploads/{filename}") as f:
                 code_field.value = f.read()
             page.update()
 
