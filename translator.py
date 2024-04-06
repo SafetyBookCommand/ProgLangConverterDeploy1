@@ -95,7 +95,7 @@ def to_python(tokens_list: list[list[Token | VarToken | str]], filename: str) ->
                         for_var = str(row[1]).split('-')[1].split(':')[0]
                         lb = str(row[3]).split(':')[1]
                         rb = str(row[5]).split(':')[1]
-                        CODE_TO_EXECUTE += "for " + for_var + " in range(" + lb + ", " + {rb} + " + 1): \n" + "\t" * times_to_tab
+                        CODE_TO_EXECUTE += "for " + for_var + " in range(" + lb + ", " + rb + " + 1): \n" + "\t" * times_to_tab
                         loop_count += 1
                         break
                     case "THEN":
