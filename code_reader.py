@@ -25,9 +25,7 @@ def read_run(filename: str, txt: str | None = None, direct_from_files: bool = Fa
         res, err = compiler.run()
         print(err)
         if err:
-            # print(err)
             output_parts["error"] = str(err)
-            # output_parts["error"] = string_io.getvalue()
         else:
             string_io = io.StringIO()
             sys.stdout = string_io
