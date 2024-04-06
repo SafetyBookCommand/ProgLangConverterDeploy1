@@ -4,7 +4,6 @@ import os
 from typing import Dict
 from time import sleep
 
-from templates import *
 from code_reader import read_run
 
 FROM_LANGUAGE_NAME = ""
@@ -43,8 +42,18 @@ def main(page: ft.Page):
         multiline=True,
     )
 
-    translated_code = TextForCode(19)
-    code_result = TextForCode(22)
+    translated_code = ft.Text(
+            value='',
+            size=19,
+            text_align=ft.TextAlign.START,
+            selectable=True
+        )
+    code_result = ft.Text(
+            value='',
+            size=22,
+            text_align=ft.TextAlign.START,
+            selectable=True
+        )
 
     prog_bars: Dict[str, ft.ProgressRing] = {}
     files = ft.Ref[ft.Column]()
@@ -55,12 +64,12 @@ def main(page: ft.Page):
         prog_bars.clear()
         files.current.controls.clear()
         if e.files is not None:
-            # if os.listdir("uploads"): 
-            #     for file in os.listdir("uploads"):
-            #         file_path_uploads = os.path.join("uploads", file)
-            #         print(file_path_uploads)
-            #         if os.path.isfile(file_path_uploads):
-            #             os.remove(file_path_uploads)
+            if os.path.isdir("uploads") and os.listdir("uploads"):  
+                for file in os.listdir("uploads"):
+                    file_path_uploads = os.path.join("uploads", file)
+                    print(file_path_uploads)
+                    if os.path.isfile(file_path_uploads):
+                        os.remove(file_path_uploads)
             for f in e.files:
                 prog = ft.ProgressRing(value=0, bgcolor="#eeeeee", width=20, height=20)
                 prog_bars[f.name] = prog
@@ -150,9 +159,27 @@ def main(page: ft.Page):
         icon=ft.icons.DELETE
     )
 
-    filename_text = RightColumnLabels(f"\nFile: {filename}\n")
-    warnings_text = RightColumnLabels("Warnings")
-    warnings_message = WarningMessage('')
+    filename_text = ft.Text(
+            value=f"\nFile: {filename}\n",
+            theme_style=ft.TextThemeStyle.DISPLAY_SMALL,
+            size=25,
+            text_align=ft.TextAlign.CENTER,
+            italic=True
+        )
+    warnings_text = ft.Text(
+            value="Warnings:",
+            theme_style=ft.TextThemeStyle.DISPLAY_SMALL,
+            size=25,
+            text_align=ft.TextAlign.CENTER,
+            italic=True
+        )
+    warnings_message = ft.Text(
+            value='',
+            theme_style=ft.TextThemeStyle.DISPLAY_SMALL,
+            size=20,
+            text_align=ft.TextAlign.CENTER,
+            width=200
+        )
 
     main_stack = ft.ListView(
         [
@@ -169,7 +196,7 @@ def main(page: ft.Page):
                               "\t\t  1.2. Special Chars: \\n, \\t can be typed only with double-slash: \\\\n, \\\\t\n"
                               "\t\t  1.3. You cannot write arguments of one function on multiple lines\n"
                               "\t\t  1.4. There are not available IB-Styled Pseudocode Data Structures\n"
-                              "\t2. You can provide Pseudocode to the website by downloading your txt file or copying your code\n\n",
+                              "\t2. You can provide Pseudocode to the website by downloading your txt file or copying your code",
                         size=22,
                         text_align=ft.TextAlign.JUSTIFY,
                         expand=True
@@ -221,12 +248,7 @@ def main(page: ft.Page):
                                     loader_button,
                                     filename_text,
                                     warnings_text,
-                                    ft.Column(
-                                        [
-                                            warnings_message
-                                        ],
-                                        width=200
-                                    )
+                                    warnings_message
                                 ]
                             )
                         ],
