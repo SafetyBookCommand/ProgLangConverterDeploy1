@@ -108,6 +108,8 @@ def main(page: ft.Page):
             sleep(3)
             with open(f"/app/uploads/{filename}") as f:
                 code_field.value = f.read()
+                
+            filename_text.value = f"\nFile: {filename}\n"            
             page.update()
 
     page.overlay.append(file_picker)
@@ -153,6 +155,7 @@ def main(page: ft.Page):
     def clear_code_field_command(e):
         code_field.value = ''
         warnings_message.value = ''
+        filename_text.value = "\nFile:\n"
         page.update()
 
     translate_code_button = ft.TextButton(
@@ -168,7 +171,7 @@ def main(page: ft.Page):
     )
 
     filename_text = ft.Text(
-            value=f"\nFile: {filename}\n",
+            value=f"\nFile:\n",
             theme_style=ft.TextThemeStyle.DISPLAY_SMALL,
             size=25,
             text_align=ft.TextAlign.CENTER,
