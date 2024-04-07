@@ -195,7 +195,7 @@ def main(page: ft.Page):
             italic=True
         )
     warnings_text = ft.Text(
-            value="Warnings:",
+            value="Warnings/Errors:",
             theme_style=ft.TextThemeStyle.DISPLAY_SMALL,
             size=25,
             text_align=ft.TextAlign.CENTER,
